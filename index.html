@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+     integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI="
+     crossorigin=""/>
+     <style>
+        
+        #map { 
+            height: 90vh; 
+            width: 100%;
+        }
+     </style>
+</head>
+<body>
+    <h1></h1>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+     integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
+     crossorigin=""></script>
+    <script>
+
+        function success(position){
+            let lat = position.coords.latitude;
+            let long = position.coords.longitude;
+
+            var map = L.map('map').setView([lat, long],16);
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
+            var marker = L.marker([lat, long]).addTo(map);
+            var circle = L.circle([lat, long], {
+                color: 'red',
+                fillColor: '#f03',
+                fillOpacity: 0.5,
+                radius: 500
+            }).addTo(map);
+            marker.bindPopup("<b>I1m HERE!</b>.").openPopup();
+
+            fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${long}&localityLanguage=en`)
+            .then((res)=>{
+                return res.json();
+            })
+            .then((result)=>{
+                console.log(result)
+                document.querySelector('h1').innerHTML = `
+                    My Location: ${result.city}/${result.principalSubdivision} - ${result.countryName}
+                `
+            })
+        }
+
+        function error(err){
+            console.log(err)
+        }
+
+        let watchID = navigator.geolocation.watchPosition(success,error,{
+            enableHighAccuracy:true,
+            timeout:5000,
+        })
+    </script>
+</body>
+</html>
